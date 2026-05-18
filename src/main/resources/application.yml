@@ -1,0 +1,33 @@
+server:
+  port: 8080
+
+jwt:
+  secret: my-super-secret-key-my-super-secret-key
+
+spring:
+
+  application:
+    name: gateway-auth-app
+
+  threads:
+    virtual:
+      enabled: true
+
+  cloud:
+    gateway:
+      server:
+        webmvc:
+
+          routes:
+
+            - id: sign-service
+              uri: http://localhost:9001
+              predicates:
+                - Path=/api/sign/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+        
