@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 //SignController ไม่จำเป็นต้องมีแต่ทำไว้เพื่อ demo เท่านั้น เพราะระบบจะวิ่งไปที่ .yml อัตโนมัติถ้าไม่มีการสร้าง controller ไว้
+//เช่น ถ้ามี path /api/sign พบใน gateway ระบบจะเรียกภายในก่อน .yml เป็นต้น
 
 @RestController
 @RequestMapping("/api/sign")
