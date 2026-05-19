@@ -31,3 +31,13 @@ management:
       exposure:
         include: health,info
         
+my-app:
+  secure-api:
+    #keystore-path: classpath:keystore.jks
+    #keystore-pass: ENCRYPTED_KEYSTORE_PASS_HERE
+    #truststore-path: classpath:truststore.jks
+    #truststore-pass: ENCRYPTED_TRUSTSTORE_PASS_HERE
+    #proxy-host: proxy.yourcompany.com
+    #proxy-port: 8080
+    proxy-user: proxyuser
+    proxy-password: proxypassword
