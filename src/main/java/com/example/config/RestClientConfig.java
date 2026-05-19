@@ -1,5 +1,6 @@
 package com.example.config;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.Authenticator;
 import java.net.InetSocketAddress;
@@ -7,8 +8,13 @@ import java.net.PasswordAuthentication;
 import java.net.ProxySelector;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Builder;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.time.Duration;
 import java.util.concurrent.Executors;
 
@@ -59,6 +65,17 @@ public class RestClientConfig {
 
 	@Bean
 	RestClient restClient(RestClient.Builder builder) throws Exception {
+
+		JdkClientHttpRequestFactory requestFactory = buildJdkClientHttpRequestFactory();
+		return builder.requestFactory(requestFactory)
+				.defaultHeader("Content-Type", "application/json;charset=UTF-8")
+				.build();
+
+	}
+
+	private JdkClientHttpRequestFactory buildJdkClientHttpRequestFactory()
+			throws KeyStoreException, NoSuchAlgorithmException,
+			CertificateException, IOException, UnrecoverableKeyException, KeyManagementException {
 
 		KeyManager[] km = null;
 		TrustManager[] tm = null;
@@ -128,11 +145,7 @@ public class RestClientConfig {
 
 		HttpClient httpClient = httpClientBuilder.build();
 
-		JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
-
-		return builder.requestFactory(requestFactory)
-				.defaultHeader("Content-Type", "application/json;charset=UTF-8")
-				.build();
+		return new JdkClientHttpRequestFactory(httpClient);
 	}
 
 	// เมธอดสำหรับ Decode รหัสผ่าน (ใส่ Logic ของคุณได้เลย)
