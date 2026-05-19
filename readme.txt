@@ -2,7 +2,7 @@
 ### สร้าง jwt
 POST http://localhost:8080/auth/login
 
-### 
+### ทดสอบใช้ Restclient class
 GET http://localhost:8080/auth/TestRestclient
 
 ### เอาไปเรียก api
