@@ -50,8 +50,7 @@ public class SecurityConfig {
 						.anyRequest()
 						.authenticated())
 
-				.oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(
-						converter)));
+				.oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(converter)));
 
 		return http.build();
 	}
