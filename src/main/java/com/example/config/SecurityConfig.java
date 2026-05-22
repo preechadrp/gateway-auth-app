@@ -31,9 +31,7 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	SecurityFilterChain security(
-			HttpSecurity http)
-			throws Exception {
+	SecurityFilterChain security(HttpSecurity http) throws Exception {
 
 		JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
 		converter.setJwtGrantedAuthoritiesConverter(new JwtRoleConverter());
