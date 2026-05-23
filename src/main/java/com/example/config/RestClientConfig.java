@@ -38,11 +38,11 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 public class RestClientConfig {
 
-	private final String keystore;
-	private final String keystorePassword;
+	private final String keyStore;
+	private final String keyStorePassword;
 	private final String keyStoreType;
-	private final String truststore;
-	private final String truststorePassword;
+	private final String trustStore;
+	private final String trustStorePassword;
 	private final String trustStoreType;
 	private final String proxyEnabled;
 	private final String proxyHost;
@@ -51,11 +51,11 @@ public class RestClientConfig {
 	private final String proxyPassword;
 
 	public RestClientConfig(
-			@Value("${server.ssl.key-store:}") String keystore,
-			@Value("${server.ssl.key-store-password:}") String keystorePassword,
+			@Value("${server.ssl.key-store:}") String keyStore,
+			@Value("${server.ssl.key-store-password:}") String keyStorePassword,
 			@Value("${server.ssl.key-store-type:}") String keyStoreType,
-			@Value("${server.ssl.trust-store:}") String truststore,
-			@Value("${server.ssl.trust-store-password:}") String truststorePassword,
+			@Value("${server.ssl.trust-store:}") String trustStore,
+			@Value("${server.ssl.trust-store-password:}") String trustStorePassword,
 			@Value("${server.ssl.trust-store-type:}") String trustStoreType,
 			@Value("${my-app.proxy.enabled:false}") String proxyEnabled,
 			@Value("${my-app.proxy.host:}") String proxyHost,
@@ -63,11 +63,11 @@ public class RestClientConfig {
 			@Value("${my-app.proxy.user:}") String proxyUser,
 			@Value("${my-app.proxy.password:}") String proxyPassword) {
 
-		this.keystore = keystore;
-		this.keystorePassword = keystorePassword;
+		this.keyStore = keyStore;
+		this.keyStorePassword = keyStorePassword;
 		this.keyStoreType = keyStoreType;
-		this.truststore = truststore;
-		this.truststorePassword = truststorePassword;
+		this.trustStore = trustStore;
+		this.trustStorePassword = trustStorePassword;
 		this.trustStoreType = trustStoreType;
 		this.proxyEnabled = proxyEnabled;
 		this.proxyHost = proxyHost;
@@ -75,8 +75,8 @@ public class RestClientConfig {
 		this.proxyUser = proxyUser;
 		this.proxyPassword = proxyPassword;
 
-		log.info("this.keystore : {}", keystore);
-		log.info("this.truststore : {}", truststore);
+		log.info("this.keyStore : {}", this.keyStore);
+		log.info("this.truStstore : {}", this.trustStore);
 	}
 
 	@Bean("myRestClient")
@@ -99,18 +99,18 @@ public class RestClientConfig {
 		TrustManager[] trustManager = null;
 
 		// โหลด keystore
-		if (this.keystore != null && !this.keystore.isBlank()
-				&& keystorePassword != null && !keystorePassword.isBlank()) {
+		if (this.keyStore != null && !this.keyStore.isBlank()
+				&& keyStorePassword != null && !keyStorePassword.isBlank()) {
 
-			File keyStoreFile = new File(this.keystore);
+			File keyStoreFile = new File(this.keyStore);
 			if (keyStoreFile.exists()) {
 
 				KeyStore keyStore = KeyStore.getInstance(this.keyStoreType); // JKS หรือ PKCS12
 				try (InputStream is = new FileInputStream(keyStoreFile)) {
-					keyStore.load(is, this.keystorePassword.toCharArray());
+					keyStore.load(is, this.keyStorePassword.toCharArray());
 				}
 				KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-				kmf.init(keyStore, this.keystorePassword.toCharArray());
+				kmf.init(keyStore, this.keyStorePassword.toCharArray());
 
 				keymanager = kmf.getKeyManagers();
 				log.info("Loaded Keystore successfully.");
@@ -118,14 +118,14 @@ public class RestClientConfig {
 		}
 
 		// โหลด Truststore
-		if (this.truststore != null && !this.truststore.isBlank()
-				&& this.truststorePassword != null && !this.truststorePassword.isBlank()) {
+		if (this.trustStore != null && !this.trustStore.isBlank()
+				&& this.trustStorePassword != null && !this.trustStorePassword.isBlank()) {
 
-			File trustStoreFile = new File(this.truststore);
+			File trustStoreFile = new File(this.trustStore);
 			if (trustStoreFile.exists()) {
 				KeyStore trustStore = KeyStore.getInstance(this.trustStoreType); // JKS หรือ PKCS12
 				try (InputStream is = new FileInputStream(trustStoreFile)) {
-					trustStore.load(is, this.truststorePassword.toCharArray());
+					trustStore.load(is, this.trustStorePassword.toCharArray());
 				}
 				TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 				tmf.init(trustStore);
