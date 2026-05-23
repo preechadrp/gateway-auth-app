@@ -76,7 +76,11 @@ public class RestClientConfig {
 		this.proxyPassword = proxyPassword;
 
 		log.info("this.keyStore : {}", this.keyStore);
-		log.info("this.truStstore : {}", this.trustStore);
+		log.info("this.trustStore : {}", this.trustStore);
+		log.info("this.proxyEnabled : {}", this.proxyEnabled);
+		log.info("this.proxyHost : {}", this.proxyHost);
+		log.info("this.proxyPort : {}", this.proxyPort);
+		log.info("this.proxyUser : {}", this.proxyUser);
 	}
 
 	@Bean("myRestClient")
