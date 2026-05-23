@@ -153,7 +153,8 @@ public class RestClientConfig {
 			httpClientBuilder.proxy(proxySelector);
 			log.info("Proxy configured.");
 
-			if (this.proxyUser != null && !this.proxyUser.isBlank() && this.proxyPassword != null && !this.proxyPassword.isBlank()) {
+			if (this.proxyUser != null && !this.proxyUser.isBlank()
+					&& this.proxyPassword != null && !this.proxyPassword.isBlank()) {
 
 				Authenticator proxyAuthenticator = new Authenticator() {
 					@Override
