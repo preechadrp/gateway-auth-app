@@ -16,6 +16,9 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class JwtService {
 
@@ -27,7 +30,7 @@ public class JwtService {
 			List<String> roles)
 			throws JOSEException {
 
-		System.out.println("secret : " + secret);
+		log.info("secret : {}", secret);
 
 		JWTClaimsSet claims = new JWTClaimsSet.Builder()
 				.subject(username)

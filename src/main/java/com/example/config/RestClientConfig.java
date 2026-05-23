@@ -1,5 +1,7 @@
 package com.example.config;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Authenticator;
@@ -27,47 +29,63 @@ import javax.net.ssl.TrustManagerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Configuration
 public class RestClientConfig {
 
-	private final Resource keystoreResource;
-	private final String encryptedKeystorePass;
-	private final Resource truststoreResource;
-	private final String encryptedTruststorePass;
+	private final String keystorePath;
+	private final String keystorePass;
+	private final String keyStoreType;
+	private final String truststorePath;
+	private final String truststorePass;
+	private final String trustStoreType;
+	private final String proxyEnabled;
 	private final String proxyHost;
 	private final Integer proxyPort;
 	private final String proxyUser;
 	private final String proxyPassword;
 
 	public RestClientConfig(
-			@Value("${my-app.secure-api.keystore-path:}") Resource keystoreResource,
-			@Value("${my-app.secure-api.keystore-pass:}") String encryptedKeystorePass,
-			@Value("${my-app.secure-api.truststore-path:}") Resource truststoreResource,
-			@Value("${my-app.secure-api.truststore-pass:}") String encryptedTruststorePass,
-			@Value("${my-app.secure-api.proxy-host:}") String proxyHost,
-			@Value("${my-app.secure-api.proxy-port:0}") Integer proxyPort,
-			@Value("${my-app.secure-api.proxy-user:}") String proxyUser,
-			@Value("${my-app.secure-api.proxy-password:}") String proxyPassword) {
+			@Value("${server.ssl.key-store:}") String keystorePath,
+			@Value("${server.ssl.key-store-password:}") String keystorePass,
+			@Value("${server.ssl.key-store-type:}") String keyStoreType,
+			@Value("${server.ssl.trust-store:}") String truststorePath,
+			@Value("${server.ssl.trust-store-password:}") String truststorePass,
+			@Value("${server.ssl.trust-store-type:}") String trustStoreType,
+			@Value("${my-app.proxy.enabled:false}") String proxyEnabled,
+			@Value("${my-app.proxy.host:}") String proxyHost,
+			@Value("${my-app.proxy.port:}") Integer proxyPort,
+			@Value("${my-app.proxy.user:}") String proxyUser,
+			@Value("${my-app.proxy.password:}") String proxyPassword) {
 
-		this.keystoreResource = keystoreResource;
-		this.encryptedKeystorePass = encryptedKeystorePass;
-		this.truststoreResource = truststoreResource;
-		this.encryptedTruststorePass = encryptedTruststorePass;
+		this.keystorePath = keystorePath;
+		this.keystorePass = keystorePass;
+		this.keyStoreType = keyStoreType;
+		this.truststorePath = truststorePath;
+		this.truststorePass = truststorePass;
+		this.trustStoreType = trustStoreType;
+		this.proxyEnabled = proxyEnabled;
 		this.proxyHost = proxyHost;
-		this.proxyPort = proxyPort;
+		this.proxyPort = proxyPort == null ? 0 : proxyPort;
 		this.proxyUser = proxyUser;
 		this.proxyPassword = proxyPassword;
+
+		log.info("this.keystorePath : {}", keystorePath);
+		log.info("this.truststorePath : {}", truststorePath);
 	}
 
-	@Bean
-	RestClient restClient(RestClient.Builder builder) throws Exception {
+	@Bean("myRestClient")
+	RestClient myRestClient() throws Exception {
 
 		JdkClientHttpRequestFactory requestFactory = buildJdkClientHttpRequestFactory();
-		return builder.requestFactory(requestFactory)
+
+		return RestClient.builder()
+				.requestFactory(requestFactory)
 				.defaultHeader("Content-Type", "application/json;charset=UTF-8")
 				.build();
 
@@ -77,46 +95,50 @@ public class RestClientConfig {
 			throws KeyStoreException, NoSuchAlgorithmException,
 			CertificateException, IOException, UnrecoverableKeyException, KeyManagementException {
 
-		KeyManager[] km = null;
-		TrustManager[] tm = null;
+		KeyManager[] keymanager = null;
+		TrustManager[] trustManager = null;
 
 		// โหลด keystore
-		if (keystoreResource != null && keystoreResource.exists()
-				&& encryptedKeystorePass != null && !encryptedKeystorePass.isBlank()) {
+		if (this.keystorePath != null && !this.keystorePath.isBlank()
+				&& keystorePass != null && !keystorePass.isBlank()) {
 
-			String keystorePass = decodePassword(encryptedKeystorePass);
+			File keyStoreFile = new File(this.keystorePath);
+			if (keyStoreFile.exists()) {
 
-			KeyStore keyStore = KeyStore.getInstance("JKS"); // หรือ PKCS12
-			try (InputStream is = keystoreResource.getInputStream()) {
-				keyStore.load(is, keystorePass.toCharArray());
+				KeyStore keyStore = KeyStore.getInstance(this.keyStoreType); // JKS หรือ PKCS12
+				try (InputStream is = new FileInputStream(keyStoreFile)) {
+					keyStore.load(is, this.keystorePass.toCharArray());
+				}
+				KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+				kmf.init(keyStore, this.keystorePass.toCharArray());
+
+				keymanager = kmf.getKeyManagers();
+				log.info("Loaded Keystore successfully.");
 			}
-			KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-			kmf.init(keyStore, keystorePass.toCharArray());
-
-			km = kmf.getKeyManagers();
-			System.out.println("Loaded Keystore successfully.");
 		}
 
 		// โหลด Truststore
-		if (truststoreResource != null && truststoreResource.exists()
-				&& encryptedTruststorePass != null && !encryptedTruststorePass.isBlank()) {
+		if (this.truststorePath != null && !this.truststorePath.isBlank()
+				&& this.truststorePass != null && !this.truststorePass.isBlank()) {
 
-			String truststorePass = decodePassword(encryptedTruststorePass);
+			File trustStoreFile = new File(this.truststorePath);
+			if (trustStoreFile.exists()) {
+				KeyStore trustStore = KeyStore.getInstance(this.trustStoreType); // JKS หรือ PKCS12
+				try (InputStream is = new FileInputStream(trustStoreFile)) {
+					trustStore.load(is, this.truststorePass.toCharArray());
+				}
+				TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+				tmf.init(trustStore);
 
-			KeyStore trustStore = KeyStore.getInstance("JKS");
-			try (InputStream is = truststoreResource.getInputStream()) {
-				trustStore.load(is, truststorePass.toCharArray());
+				trustManager = tmf.getTrustManagers();
+				log.info("Loaded Truststore successfully.");
 			}
-			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-			tmf.init(trustStore);
 
-			tm = tmf.getTrustManagers();
-			System.out.println("Loaded Truststore successfully.");
 		}
 
 		//สร้าง SSLContext ด้วย Java มาตรฐาน
 		SSLContext sslContext = SSLContext.getInstance("TLS");
-		sslContext.init(km, tm, new SecureRandom());
+		sslContext.init(keymanager, trustManager, new SecureRandom());
 
 		Builder httpClientBuilder = HttpClient.newBuilder()
 				.connectTimeout(Duration.ofSeconds(10))
@@ -124,12 +146,14 @@ public class RestClientConfig {
 				.sslContext(sslContext);
 
 		// สร้าง proxy
-		if (proxyHost != null && !proxyHost.isBlank() && proxyPort != null && proxyPort > 0) {
-			ProxySelector proxySelector = ProxySelector.of(new InetSocketAddress(proxyHost, proxyPort));
-			httpClientBuilder.proxy(proxySelector);
-			System.out.println("Proxy configured.");
+		if ("true".equalsIgnoreCase(this.proxyEnabled) && this.proxyHost != null
+				&& !this.proxyHost.isBlank() && this.proxyPort != null && this.proxyPort > 0) {
 
-			if (proxyUser != null && !proxyUser.isBlank() && proxyPassword != null && !proxyPassword.isBlank()) {
+			ProxySelector proxySelector = ProxySelector.of(new InetSocketAddress(this.proxyHost, this.proxyPort));
+			httpClientBuilder.proxy(proxySelector);
+			log.info("Proxy configured.");
+
+			if (this.proxyUser != null && !this.proxyUser.isBlank() && this.proxyPassword != null && !this.proxyPassword.isBlank()) {
 
 				Authenticator proxyAuthenticator = new Authenticator() {
 					@Override
@@ -139,7 +163,7 @@ public class RestClientConfig {
 				};
 
 				httpClientBuilder.authenticator(proxyAuthenticator);
-				System.out.println("Proxy Authenticator configured.");
+				log.info("Proxy Authenticator configured.");
 			}
 		}
 
@@ -148,17 +172,4 @@ public class RestClientConfig {
 		return new JdkClientHttpRequestFactory(httpClient);
 	}
 
-	// เมธอดสำหรับ Decode รหัสผ่าน (ใส่ Logic ของคุณได้เลย)
-	private String decodePassword(String encrypted) {
-		// ตัวอย่าง: ถ้าแค่ Base64
-		// return new String(java.util.Base64.getDecoder().decode(encrypted));
-
-		// หรือถ้าเป็น AES ก็ใส่ Logic decrypt ตรงนี้
-		return myCustomDecryptionLogic(encrypted);
-	}
-
-	private String myCustomDecryptionLogic(String encrypted) {
-		// ... โค้ดถอดรหัสของคุณ ...
-		return encrypted;
-	}
 }

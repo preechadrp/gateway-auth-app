@@ -1,5 +1,13 @@
 server:
   port: 8080
+  ssl:
+    enabled: false
+    key-store: 
+    key-store-password: 
+    key-store-type: 
+    trust-store: 
+    trust-store-password: 
+    trust-store-type: 
 
 jwt:
   secret: my-super-secret-key-my-super-secret-key
@@ -31,13 +39,11 @@ management:
       exposure:
         include: health,info
         
+        
 my-app:
-  secure-api:
-    #keystore-path: classpath:keystore.jks
-    #keystore-pass: ENCRYPTED_KEYSTORE_PASS_HERE
-    #truststore-path: classpath:truststore.jks
-    #truststore-pass: ENCRYPTED_TRUSTSTORE_PASS_HERE
-    #proxy-host: proxy.yourcompany.com
-    #proxy-port: 8080
-    proxy-user: proxyuser
-    proxy-password: proxypassword
+  proxy:
+    enabled: false
+    #host: proxy.yourcompany.com
+    #port: 8080
+    user: proxyuser
+    password: proxypassword

@@ -1,5 +1,8 @@
 package com.example.auth.controller;
 
+import java.net.URI;
+
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,7 +14,7 @@ public class TestRestclientController {
 
 	private final RestClient restClient;
 
-	public TestRestclientController(RestClient restClient) {
+	public TestRestclientController(@Qualifier("myRestClient") RestClient restClient) {
 		this.restClient = restClient;
 	}
 
@@ -20,7 +23,7 @@ public class TestRestclientController {
 		String testurl = "http://localhost:8080/auth/login";
 
 		String response = this.restClient.post()
-				.uri(testurl)
+				.uri(URI.create(testurl))
 				.retrieve()
 				.body(String.class);
 
