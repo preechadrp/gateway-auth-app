@@ -117,7 +117,7 @@ public class RestClientConfig {
 				kmf.init(keyStore, this.keyStorePassword.toCharArray());
 
 				keymanager = kmf.getKeyManagers();
-				log.info("Loaded Keystore successfully.");
+				log.info("Successfully initialized keystore.");
 			}
 		}
 
@@ -135,7 +135,7 @@ public class RestClientConfig {
 				tmf.init(trustStore);
 
 				trustManager = tmf.getTrustManagers();
-				log.info("Loaded Truststore successfully.");
+				log.info("Successfully initialized truststore.");
 			}
 
 		}
@@ -155,7 +155,7 @@ public class RestClientConfig {
 
 			ProxySelector proxySelector = ProxySelector.of(new InetSocketAddress(this.proxyHost, this.proxyPort));
 			httpClientBuilder.proxy(proxySelector);
-			log.info("Proxy configured.");
+			log.info("Successfully initialized proxy.");
 
 			if (this.proxyUser != null && !this.proxyUser.isBlank()
 					&& this.proxyPassword != null && !this.proxyPassword.isBlank()) {
@@ -168,7 +168,7 @@ public class RestClientConfig {
 				};
 
 				httpClientBuilder.authenticator(proxyAuthenticator);
-				log.info("Proxy Authenticator configured.");
+				log.info("Successfully initialized proxy authenticator.");
 			}
 		}
 
