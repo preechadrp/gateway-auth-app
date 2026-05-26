@@ -9,9 +9,6 @@ server:
     trust-store-password: 
     trust-store-type: 
 
-jwt:
-  secret: my-super-secret-key-my-super-secret-key
-
 spring:
 
   application:
@@ -41,6 +38,8 @@ management:
         
         
 my-app:
+  jwt:
+    secret: my-super-secret-key-my-super-secret-key
   proxy:
     enabled: false
     #host: proxy.yourcompany.com

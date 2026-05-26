@@ -22,8 +22,13 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class JwtService {
 
-	@Value("${jwt.secret}")
-	private String secret;
+	private final String secret;
+
+	public JwtService(
+			@Value("${my-app.jwt.secret}") String secret) {
+
+		this.secret = secret;
+	}
 
 	public String generateToken(
 			String username,

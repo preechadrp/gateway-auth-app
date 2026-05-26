@@ -17,8 +17,13 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
-	@Value("${jwt.secret}")
-	private String secret;
+	private final String secret;
+
+	public SecurityConfig(
+			@Value("${my-app.jwt.secret}") String secret) {
+
+		this.secret = secret;
+	}
 
 	@Bean
 	JwtDecoder jwtDecoder() {
