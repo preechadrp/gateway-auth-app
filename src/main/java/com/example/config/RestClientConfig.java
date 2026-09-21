@@ -26,11 +26,12 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
+
+import com.example.component.Appconfig;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,49 +39,12 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 public class RestClientConfig {
 
-	private final String keyStore;
-	private final String keyStorePassword;
-	private final String keyStoreType;
-	private final String trustStore;
-	private final String trustStorePassword;
-	private final String trustStoreType;
-	private final String proxyEnabled;
-	private final String proxyHost;
-	private final Integer proxyPort;
-	private final String proxyUser;
-	private final String proxyPassword;
+	private final Appconfig appconfig;
 
 	public RestClientConfig(
-			@Value("${server.ssl.key-store:}") String keyStore,
-			@Value("${server.ssl.key-store-password:}") String keyStorePassword,
-			@Value("${server.ssl.key-store-type:}") String keyStoreType,
-			@Value("${server.ssl.trust-store:}") String trustStore,
-			@Value("${server.ssl.trust-store-password:}") String trustStorePassword,
-			@Value("${server.ssl.trust-store-type:}") String trustStoreType,
-			@Value("${my-app.proxy.enabled:false}") String proxyEnabled,
-			@Value("${my-app.proxy.host:}") String proxyHost,
-			@Value("${my-app.proxy.port:}") Integer proxyPort,
-			@Value("${my-app.proxy.user:}") String proxyUser,
-			@Value("${my-app.proxy.password:}") String proxyPassword) {
+			Appconfig appconfig) {
 
-		this.keyStore = keyStore;
-		this.keyStorePassword = keyStorePassword;
-		this.keyStoreType = keyStoreType;
-		this.trustStore = trustStore;
-		this.trustStorePassword = trustStorePassword;
-		this.trustStoreType = trustStoreType;
-		this.proxyEnabled = proxyEnabled;
-		this.proxyHost = proxyHost;
-		this.proxyPort = proxyPort == null ? 0 : proxyPort;
-		this.proxyUser = proxyUser;
-		this.proxyPassword = proxyPassword;
-
-		log.info("this.keyStore : {}", this.keyStore);
-		log.info("this.trustStore : {}", this.trustStore);
-		log.info("this.proxyEnabled : {}", this.proxyEnabled);
-		log.info("this.proxyHost : {}", this.proxyHost);
-		log.info("this.proxyPort : {}", this.proxyPort);
-		log.info("this.proxyUser : {}", this.proxyUser);
+		this.appconfig = appconfig;
 	}
 
 	@Bean("myRestClient")
@@ -103,18 +67,18 @@ public class RestClientConfig {
 		TrustManager[] trustManager = null;
 
 		// โหลด keystore
-		if (this.keyStore != null && !this.keyStore.isBlank()
-				&& keyStorePassword != null && !keyStorePassword.isBlank()) {
+		if (appconfig.getKeyStore() != null && !appconfig.getKeyStore().isBlank()
+				&& appconfig.getKeyStorePassword() != null && !appconfig.getKeyStorePassword().isBlank()) {
 
-			File keyStoreFile = new File(this.keyStore);
+			File keyStoreFile = new File(appconfig.getKeyStore());
 			if (keyStoreFile.exists()) {
 
-				KeyStore keyStore = KeyStore.getInstance(this.keyStoreType); // JKS หรือ PKCS12
+				KeyStore keyStore = KeyStore.getInstance(appconfig.getKeyStoreType()); // JKS หรือ PKCS12
 				try (InputStream is = new FileInputStream(keyStoreFile)) {
-					keyStore.load(is, this.keyStorePassword.toCharArray());
+					keyStore.load(is, appconfig.getKeyStorePassword().toCharArray());
 				}
 				KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-				kmf.init(keyStore, this.keyStorePassword.toCharArray());
+				kmf.init(keyStore, appconfig.getKeyStorePassword().toCharArray());
 
 				keymanager = kmf.getKeyManagers();
 				log.info("Successfully initialized keystore.");
@@ -122,14 +86,14 @@ public class RestClientConfig {
 		}
 
 		// โหลด Truststore
-		if (this.trustStore != null && !this.trustStore.isBlank()
-				&& this.trustStorePassword != null && !this.trustStorePassword.isBlank()) {
+		if (appconfig.getTrustStore() != null && !appconfig.getTrustStore().isBlank()
+				&& appconfig.getTrustStorePassword() != null && !appconfig.getTrustStorePassword().isBlank()) {
 
-			File trustStoreFile = new File(this.trustStore);
+			File trustStoreFile = new File(appconfig.getTrustStore());
 			if (trustStoreFile.exists()) {
-				KeyStore trustStore = KeyStore.getInstance(this.trustStoreType); // JKS หรือ PKCS12
+				KeyStore trustStore = KeyStore.getInstance(appconfig.getTrustStoreType()); // JKS หรือ PKCS12
 				try (InputStream is = new FileInputStream(trustStoreFile)) {
-					trustStore.load(is, this.trustStorePassword.toCharArray());
+					trustStore.load(is, appconfig.getTrustStorePassword().toCharArray());
 				}
 				TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 				tmf.init(trustStore);
@@ -150,20 +114,20 @@ public class RestClientConfig {
 				.sslContext(sslContext);
 
 		// สร้าง proxy
-		if ("true".equalsIgnoreCase(this.proxyEnabled) && this.proxyHost != null
-				&& !this.proxyHost.isBlank() && this.proxyPort != null && this.proxyPort > 0) {
+		if ("true".equalsIgnoreCase(appconfig.getProxyEnabled()) && appconfig.getProxyHost() != null
+				&& !appconfig.getProxyHost().isBlank() && appconfig.getProxyPort() != null && appconfig.getProxyPort() > 0) {
 
-			ProxySelector proxySelector = ProxySelector.of(new InetSocketAddress(this.proxyHost, this.proxyPort));
+			ProxySelector proxySelector = ProxySelector.of(new InetSocketAddress(appconfig.getProxyHost(), appconfig.getProxyPort()));
 			httpClientBuilder.proxy(proxySelector);
 			log.info("Successfully initialized proxy.");
 
-			if (this.proxyUser != null && !this.proxyUser.isBlank()
-					&& this.proxyPassword != null && !this.proxyPassword.isBlank()) {
+			if (appconfig.getProxyUser() != null && !appconfig.getProxyUser().isBlank()
+					&& appconfig.getProxyPassword() != null && !appconfig.getProxyPassword().isBlank()) {
 
 				Authenticator proxyAuthenticator = new Authenticator() {
 					@Override
 					protected PasswordAuthentication getPasswordAuthentication() {
-						return new PasswordAuthentication(proxyUser, proxyPassword.toCharArray());
+						return new PasswordAuthentication(Appconfig.getInstance().getProxyUser(), Appconfig.getInstance().getProxyPassword().toCharArray());
 					}
 				};
 

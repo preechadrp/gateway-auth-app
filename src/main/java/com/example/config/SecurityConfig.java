@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,21 +13,23 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
+import com.example.component.Appconfig;
+
 @Configuration
 public class SecurityConfig {
 
-	private final String secret;
+	private final Appconfig appconfig;
 
 	public SecurityConfig(
-			@Value("${my-app.jwt.secret}") String secret) {
+			Appconfig appconfig) {
 
-		this.secret = secret;
+		this.appconfig = appconfig;
 	}
 
 	@Bean
 	JwtDecoder jwtDecoder() {
 
-		SecretKey key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+		SecretKey key = new SecretKeySpec(this.appconfig.getSecret().getBytes(StandardCharsets.UTF_8), "HmacSHA256");
 
 		return NimbusJwtDecoder
 				.withSecretKey(key)

@@ -6,9 +6,9 @@ import java.util.List;
 
 import javax.crypto.spec.SecretKeySpec;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.example.component.Appconfig;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -22,20 +22,18 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class JwtService {
 
-	private final String secret;
+	private final Appconfig appconfig;
 
 	public JwtService(
-			@Value("${my-app.jwt.secret}") String secret) {
+			Appconfig appconfig) {
 
-		this.secret = secret;
+		this.appconfig = appconfig;
 	}
 
 	public String generateToken(
 			String username,
 			List<String> roles)
 			throws JOSEException {
-
-		log.info("secret : {}", secret);
 
 		JWTClaimsSet claims = new JWTClaimsSet.Builder()
 				.subject(username)
@@ -49,7 +47,7 @@ public class JwtService {
 				claims);
 
 		MACSigner signer = new MACSigner(
-				new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+				new SecretKeySpec(appconfig.getSecret().getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
 
 		jwt.sign(signer);
 
