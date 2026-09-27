@@ -63,6 +63,9 @@ public class RestClientConfig {
 			throws KeyStoreException, NoSuchAlgorithmException,
 			CertificateException, IOException, UnrecoverableKeyException, KeyManagementException {
 
+		//ถ้าต้องการปิด HostnameVerification แบบชั่วคราวหรือสำหรับ test จะมีผลทั้ง jvm
+		//java "-Djdk.internal.httpclient.disableHostnameVerification=true" -jar app.jar
+
 		KeyManager[] keymanager = null;
 		TrustManager[] trustManager = null;
 
@@ -127,7 +130,7 @@ public class RestClientConfig {
 				Authenticator proxyAuthenticator = new Authenticator() {
 					@Override
 					protected PasswordAuthentication getPasswordAuthentication() {
-						return new PasswordAuthentication(Appconfig.getInstance().getProxyUser(), Appconfig.getInstance().getProxyPassword().toCharArray());
+						return new PasswordAuthentication(appconfig.getProxyUser(), appconfig.getProxyPassword().toCharArray());
 					}
 				};
 
